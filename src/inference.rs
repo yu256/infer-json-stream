@@ -166,7 +166,7 @@ pub fn merge_types(type1: InferredType, type2: InferredType) -> InferredType {
                 }
                 Some(p) => {
                     // If types differ, create a union of all unique types
-                    let union_types = if p > first_type {
+                    let union_types = if p < first_type {
                         vec![p, first_type]
                     } else {
                         vec![first_type, p]
