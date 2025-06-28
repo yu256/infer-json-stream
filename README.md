@@ -32,8 +32,8 @@ cargo run -- -i <input_json_file> -o <output_ts_file> -r <root_type_name>
 - `-i`, `--input`：入力JSONファイルのパス（デフォルト: `input.json`）
 - `-o`, `--output`：出力TypeScriptファイルのパス（デフォルト: `output.ts`）
 - `-r`, `--root_name`：生成されるルート型定義の名前（デフォルト: `Events`）
-- `--tag_field_name`：イベントのタグ（型）を表すJSONフィールド名（デフォルト: `type`）
-- `--content_field_name`：イベントのペイロードを表すJSONフィールド名（デフォルト: `content`）
+- `--tag`：イベントのタグ（型）を表すJSONフィールド名（デフォルト: `type`）
+- `--content`：イベントのペイロードを表すJSONフィールド名（デフォルト: `content`）
 
 ## 型推論
 
@@ -72,5 +72,5 @@ cargo test
 ### フォーマット
 
 ```bash
-cargo fmt
+cargo +nightly fmt
 ```
