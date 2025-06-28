@@ -1,7 +1,7 @@
 use anyhow::{Context as _, Result};
 use clap::Parser;
 use infer_json_stream::{generation::generate_typescript_definitions, types::InputData};
-use rayon::iter::{ParallelBridge, ParallelIterator as _};
+use rayon::iter::{IntoParallelIterator as _, ParallelBridge, ParallelIterator};
 use serde_json::Value;
 use std::fs;
 
@@ -18,6 +18,8 @@ struct Args {
     tag: String,
     #[arg(long, default_value = "content")]
     content: String,
+    #[arg(long)]
+    json_array: bool,
 }
 
 fn main() -> Result<()> {
@@ -29,25 +31,17 @@ fn main() -> Result<()> {
     println!("File reading took: {:?}", read_start.elapsed());
 
     let parse_start = std::time::Instant::now();
-    let json_array = json_input
-        .lines()
-        .par_bridge()
-        .filter(|line| !line.trim().is_empty())
-        .map(|line| {
-            let value: Value = serde_json::from_str(line)?;
-            let r#type = value
-                .get(&args.tag)
-                .and_then(Value::as_str)
-                .with_context(|| format!("Missing or invalid type field in line: '{line}'"))?
-                .to_string();
-            let content = value
-                .get(&args.content)
-                .and_then(Value::as_str)
-                .with_context(|| format!("Missing or invalid content field in type '{type}'"))?
-                .to_string();
-            Ok(InputData { r#type, content })
-        })
-        .collect::<Result<Vec<InputData>>>()?;
+    let json_array = if args.json_array {
+        let par_iter = serde_json::from_str::<Vec<Value>>(&json_input)?.into_par_iter();
+        parse_json(par_iter, &args.tag, &args.content)
+    } else {
+        let par_iter = json_input
+            .lines()
+            .par_bridge()
+            .filter(|line| !line.trim().is_empty())
+            .map(|line| serde_json::from_str::<Value>(line).expect("Failed to parse JSON line"));
+        parse_json(par_iter, &args.tag, &args.content)
+    }?;
     println!("JSON parsing took: {:?}", parse_start.elapsed());
 
     let gen_start = std::time::Instant::now();
@@ -59,4 +53,26 @@ fn main() -> Result<()> {
     println!("File writing took: {:?}", write_start.elapsed());
 
     Ok(())
+}
+
+fn parse_json(
+    par_iter: impl ParallelIterator<Item = Value>,
+    tag: &str,
+    content: &str,
+) -> Result<Vec<InputData>> {
+    par_iter
+        .map(|value| {
+            let r#type = value
+                .get(tag)
+                .and_then(Value::as_str)
+                .with_context(|| format!("Missing or invalid {tag} field in value: {value}"))?
+                .to_string();
+            let content = value
+                .get(content)
+                .and_then(Value::as_str)
+                .with_context(|| format!("Missing or invalid {content} field in type {type}"))?
+                .to_string();
+            Ok(InputData { r#type, content })
+        })
+        .collect()
 }

@@ -4,7 +4,14 @@
 
 ## 入力JSONの制約
 
-入力JSONファイルは、以下の構造を持つJSONオブジェクトの配列である必要があります。`tag`と`content`オプションでフィールド名を指定しない場合、デフォルトで`type`と`content`が使用されます。
+入力は、デフォルトで行区切りのJSON（JSON Lines）を想定しています。各行がひとつのJSONオブジェクトです。
+
+```json
+{"type": "string", "content": "string"}
+{"type": "string", "content": "string"}
+```
+
+オプションでJSON配列を扱うことも可能です。その場合、`--json-array`フラグを付けて実行してください。
 
 ```json
 [
@@ -34,6 +41,7 @@ cargo run -- -i <input_json_file> -o <output_ts_file> -r <root_type_name>
 - `-r`, `--root_name`：生成されるルート型定義の名前（デフォルト: `Events`）
 - `--tag`：イベントのタグ（型）を表すJSONフィールド名（デフォルト: `type`）
 - `--content`：イベントのペイロードを表すJSONフィールド名（デフォルト: `content`）
+- `--json-array`：このフラグを指定すると、入力をJSON配列としてパースします。
 
 ## 型推論
 
