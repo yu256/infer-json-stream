@@ -4,7 +4,7 @@
 
 ## 入力JSONの制約
 
-入力は、デフォルトで行区切りのJSON（JSON Lines）を想定しています。各行がひとつのJSONオブジェクトです。
+入力は、デフォルトで行区切りのJSON（JSON Lines）を想定しています。各行がひとつのJSONオブジェクトです。`tag`と`content`オプションでフィールド名を指定しない場合、デフォルトで`type`と`content`が使用されます。
 
 ```json
 {"type": "string", "content": "string"}
